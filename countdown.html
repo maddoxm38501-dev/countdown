@@ -459,20 +459,31 @@
     const music = document.getElementById('bgMusic');
     const btn   = document.getElementById('muteBtn');
     let muted = true;
+    let shuffled = [];
     let trackIndex = 0;
 
+    function shuffleTracks() {
+      shuffled = [...TRACKS].sort(() => Math.random() - 0.5);
+    }
+
     function loadTrack(index) {
-      music.src = TRACKS[index];
+      music.src = shuffled[index];
       music.load();
       if (!muted) music.play().catch(() => {});
     }
 
     // Auto advance to next track when one ends
     music.addEventListener('ended', () => {
-      trackIndex = (trackIndex + 1) % TRACKS.length;
+      trackIndex++;
+      if (trackIndex >= shuffled.length) {
+        shuffleTracks(); // reshuffle when all songs have played
+        trackIndex = 0;
+      }
       loadTrack(trackIndex);
       if (!muted) music.play().catch(() => {});
     });
+
+    shuffleTracks();
 
     function toggleMute() {
       muted = !muted;
