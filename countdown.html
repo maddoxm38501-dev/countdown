@@ -220,6 +220,25 @@
       z-index: 2;
     }
 
+    /* ── Mute button ────────────────────────────────── */
+    #muteBtn {
+      position: fixed;
+      top: 1.2rem;
+      right: 1.4rem;
+      z-index: 10;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(201,168,76,0.35);
+      color: #c9a84c;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.2s;
+    }
+    #muteBtn:hover { background: rgba(201,168,76,0.15); }
+
     /* ── Zero state ─────────────────────────────────── */
     .zero-screen {
       display: none;
@@ -263,6 +282,10 @@
   </style>
 </head>
 <body>
+
+  <!-- Audio -->
+  <audio id="bgMusic"></audio>
+  <button id="muteBtn" onclick="toggleMute()">🔇 MUTED</button>
 
   <!-- Star field -->
   <div id="stars"></div>
@@ -421,6 +444,52 @@
 
     tick();
     setInterval(tick, 1000);
+
+    // ── Audio Playlist ────────────────────────────────────
+    const TRACKS = [
+      'mandalorian.mp3',
+      'imperial_march.mp3',
+      'duel_of_fates.mp3',
+      'asteroid_field.mp3',
+      'battle_of_heroes.mp3',
+      'jyn-erso.mp3',
+      'force_theme.mp3',
+    ];
+
+    const music = document.getElementById('bgMusic');
+    const btn   = document.getElementById('muteBtn');
+    let muted = true;
+    let trackIndex = 0;
+
+    function loadTrack(index) {
+      music.src = TRACKS[index];
+      music.load();
+      if (!muted) music.play().catch(() => {});
+    }
+
+    // Auto advance to next track when one ends
+    music.addEventListener('ended', () => {
+      trackIndex = (trackIndex + 1) % TRACKS.length;
+      loadTrack(trackIndex);
+      if (!muted) music.play().catch(() => {});
+    });
+
+    function toggleMute() {
+      muted = !muted;
+      music.muted = muted;
+      btn.textContent = muted ? '🔇 MUTED' : '🔊 PLAYING';
+      if (!muted && music.paused) music.play().catch(() => {});
+    }
+
+    // Autoplay on first user interaction anywhere on the page
+    document.addEventListener('click', function startAudio() {
+      loadTrack(trackIndex);
+      music.muted = true;
+      music.play().then(() => {
+        muted = true;
+        btn.textContent = '🔇 MUTED';
+      }).catch(() => {});
+    }, { once: true });
   </script>
 </body>
 </html>
