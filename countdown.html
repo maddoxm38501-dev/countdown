@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Hunt for the Krayt Dragon</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Orbitron', monospace;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* ── Star field ─────────────────────────────────── */
+    #stars {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      background: #fff;
+      border-radius: 50%;
+      animation: twinkle linear infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50%       { opacity: 1;   }
+    }
+
+    /* ── Scanline overlay ───────────────────────────── */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.05) 2px,
+        rgba(0,0,0,0.05) 4px
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ── Content ────────────────────────────────────── */
+    .container {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 2rem;
+      width: 100%;
+    }
+
+    .eyebrow {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.6em;
+      color: #c9a84c;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+      opacity: 0.8;
+    }
+
+    .title {
+      font-size: clamp(1.4rem, 4vw, 3rem);
+      font-weight: 900;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow:
+        0 0 20px rgba(201,168,76,0.6),
+        0 0 60px rgba(201,168,76,0.2);
+      margin-bottom: 0.6rem;
+    }
+
+    .divider {
+      width: 340px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+      margin: 1.6rem auto;
+    }
+
+    /* ── Countdown numbers ──────────────────────────── */
+    .countdown {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 0;
+      margin: 0.5rem 0 1.8rem;
+    }
+
+    .unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: clamp(60px, 10vw, 130px);
+    }
+
+    .number {
+      font-size: clamp(3rem, 9vw, 7.5rem);
+      font-weight: 900;
+      line-height: 1;
+      color: #fff;
+      text-shadow:
+        0 0 15px rgba(255,255,255,0.4),
+        0 0 40px rgba(201,168,76,0.25);
+      transition: color 0.3s;
+    }
+
+    .number.pulse {
+      color: #c9a84c;
+    }
+
+    .unit-label {
+      font-size: clamp(0.45rem, 1.2vw, 0.7rem);
+      letter-spacing: 0.35em;
+      color: #c9a84c;
+      margin-top: 0.5rem;
+      font-weight: 400;
+      opacity: 0.85;
+    }
+
+    .colon {
+      font-size: clamp(2.5rem, 7vw, 6rem);
+      font-weight: 900;
+      color: #c9a84c;
+      padding: 0 0.1em;
+      margin-top: 0.1em;
+      opacity: 0.7;
+      animation: blink 1s step-start infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0.7; }
+      50%       { opacity: 0.15; }
+    }
+
+    /* ── Status / info row ──────────────────────────── */
+    .info-row {
+      display: flex;
+      justify-content: center;
+      gap: 2.5rem;
+      margin-bottom: 1.8rem;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    .info-item {
+      font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.55);
+    }
+
+    .info-item span {
+      color: #c9a84c;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #c9a84c;
+      margin-right: 6px;
+      animation: statusPulse 1.5s ease-in-out infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { box-shadow: 0 0 4px #c9a84c; opacity: 1; }
+      50%       { box-shadow: 0 0 12px #c9a84c; opacity: 0.6; }
+    }
+
+    /* ── Quote ──────────────────────────────────────── */
+    .quote-block {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(0.8rem, 1.8vw, 1.05rem);
+      font-style: italic;
+      color: rgba(255,255,255,0.45);
+      max-width: 520px;
+      margin: 0 auto 0.5rem;
+      letter-spacing: 0.04em;
+      min-height: 2em;
+      transition: opacity 0.8s;
+    }
+
+    .quote-author {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(0.7rem, 1.4vw, 0.85rem);
+      letter-spacing: 0.25em;
+      color: #c9a84c;
+      opacity: 0.6;
+    }
+
+    /* ── Footer ─────────────────────────────────────── */
+    .footer {
+      position: fixed;
+      bottom: 1.5rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(0.65rem, 1.2vw, 0.78rem);
+      letter-spacing: 0.4em;
+      color: rgba(255,255,255,0.2);
+      text-transform: uppercase;
+      z-index: 2;
+    }
+
+    /* ── Zero state ─────────────────────────────────── */
+    .zero-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 10;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .zero-screen.active { display: flex; }
+
+    .zero-title {
+      font-size: clamp(2rem, 6vw, 5rem);
+      font-weight: 900;
+      letter-spacing: 0.3em;
+      color: #c9a84c;
+      text-shadow: 0 0 40px #c9a84c, 0 0 80px rgba(201,168,76,0.4);
+      animation: flicker 3s ease-in-out infinite;
+    }
+
+    .zero-sub {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(1rem, 2.5vw, 1.5rem);
+      letter-spacing: 0.5em;
+      color: rgba(255,255,255,0.6);
+      margin-top: 1.5rem;
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      92%       { opacity: 1; }
+      93%       { opacity: 0.4; }
+      94%       { opacity: 1; }
+      96%       { opacity: 0.6; }
+      97%       { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Star field -->
+  <div id="stars"></div>
+
+  <!-- Main countdown -->
+  <div class="container" id="mainScreen">
+    <div class="title">The Hunt for the Krayt Dragon</div>
+    <div class="divider"></div>
+
+    <div class="countdown">
+      <div class="unit">
+        <div class="number" id="months">00</div>
+        <div class="unit-label">Months</div>
+      </div>
+      <div class="colon">:</div>
+      <div class="unit">
+        <div class="number" id="days">00</div>
+        <div class="unit-label">Days</div>
+      </div>
+      <div class="colon">:</div>
+      <div class="unit">
+        <div class="number" id="hours">00</div>
+        <div class="unit-label">Hours</div>
+      </div>
+      <div class="colon">:</div>
+      <div class="unit">
+        <div class="number" id="minutes">00</div>
+        <div class="unit-label">Minutes</div>
+      </div>
+      <div class="colon">:</div>
+      <div class="unit">
+        <div class="number" id="seconds">00</div>
+        <div class="unit-label">Seconds</div>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-item">📍 Target: <span>Krayt Dragon</span></div>
+      <div class="info-item">💰 Reward: <span>Unclaimed</span></div>
+      <div class="info-item"><span class="status-dot"></span>Status: <span id="statusText">Tracking...</span></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="quote-block" id="quoteText">"Bounty hunting is a complicated profession."</div>
+    <div class="quote-author" id="quoteAuthor">— Boba Fett</div>
+  </div>
+
+  <!-- Zero screen -->
+  <div class="zero-screen" id="zeroScreen">
+    <div class="zero-title">🐉 The Hunt Begins.</div>
+    <div class="zero-sub">Move out, hunters. The Krayt Dragon awaits.</div>
+  </div>
+
+  <div class="footer">June 5th, 2026 &nbsp;·&nbsp; 5:00 PM CT</div>
+
+  <script>
+    // ── Config ───────────────────────────────────────────
+    const EVENT_DATE = new Date('2026-06-05T22:00:00Z'); // 5:00 PM CT (UTC-5 in June)
+
+    const QUOTES = [
+      ["Bounty hunting is a complicated profession.", "Boba Fett"],
+      ["This is the way.", "The Mandalorian"],
+      ["I can bring you in warm, or I can bring you in cold.", "The Mandalorian"],
+      ["He's no good to me dead.", "Boba Fett"],
+      ["I'm just a simple man trying to make my way in the universe.", "Jango Fett"],
+      ["Never tell me the odds.", "Han Solo"],
+      ["The hunt never ends. Only the prey changes.", "Unknown Hunter"],
+      ["Dead or alive — your choice.", "Cad Bane"],
+      ["Track. Hunt. Collect.", "The Bounty Hunter's Creed"],
+      ["In this galaxy, credits are the only truth.", "Unknown Hunter"],
+      ["Patience. The prey always reveals itself.", "Unknown Hunter"],
+      ["The bigger the bounty, the bigger the glory.", "Unknown Hunter"],
+      ["Only the bold claim the greatest prizes.", "The Bounty Board"],
+      ["Gear up. The hunt is almost upon us.", "The Bounty Board"],
+      ["You survived. That means you're worth something.", "Unknown Hunter"],
+    ];
+
+    // ── Stars ─────────────────────────────────────────────
+    const starsEl = document.getElementById('stars');
+    for (let i = 0; i < 200; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      const size = Math.random() * 2.5 + 0.5;
+      s.style.cssText = `
+        width:${size}px; height:${size}px;
+        top:${Math.random()*100}%;
+        left:${Math.random()*100}%;
+        animation-duration:${Math.random()*4+2}s;
+        animation-delay:${Math.random()*5}s;
+        opacity:${Math.random()*0.5+0.1};
+      `;
+      starsEl.appendChild(s);
+    }
+
+    // ── Quote rotation ────────────────────────────────────
+    let quoteIndex = 0;
+    function nextQuote() {
+      const [text, author] = QUOTES[quoteIndex % QUOTES.length];
+      const qEl = document.getElementById('quoteText');
+      const aEl = document.getElementById('quoteAuthor');
+      qEl.style.opacity = 0;
+      setTimeout(() => {
+        qEl.textContent = `"${text}"`;
+        aEl.textContent = `— ${author}`;
+        qEl.style.opacity = 1;
+      }, 800);
+      quoteIndex++;
+    }
+    setInterval(nextQuote, 60000);
+
+    // ── Status ────────────────────────────────────────────
+    function getStatus(totalSeconds) {
+      const days = totalSeconds / 86400;
+      if (days > 7)  return 'Tracking...';
+      if (days > 3)  return 'Closing In...';
+      if (days > 1)  return 'Target Spotted...';
+      if (totalSeconds > 3600) return 'Weapons Hot...';
+      return 'ENGAGE. ENGAGE. ENGAGE.';
+    }
+
+    // ── Countdown ─────────────────────────────────────────
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function tick() {
+      const now   = new Date();
+      const diff  = EVENT_DATE - now;
+
+      if (diff <= 0) {
+        document.getElementById('mainScreen').style.display = 'none';
+        document.getElementById('zeroScreen').classList.add('active');
+        return;
+      }
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const months  = Math.floor(totalSeconds / 2592000);
+      const rem1    = totalSeconds % 2592000;
+      const days    = Math.floor(rem1 / 86400);
+      const rem2    = rem1 % 86400;
+      const hours   = Math.floor(rem2 / 3600);
+      const minutes = Math.floor((rem2 % 3600) / 60);
+      const seconds = rem2 % 60;
+
+      document.getElementById('months').textContent  = pad(months);
+      document.getElementById('days').textContent    = pad(days);
+      document.getElementById('hours').textContent   = pad(hours);
+      document.getElementById('minutes').textContent = pad(minutes);
+      document.getElementById('seconds').textContent = pad(seconds);
+      document.getElementById('statusText').textContent = getStatus(totalSeconds);
+
+      // Pulse seconds digit on change
+      const secEl = document.getElementById('seconds');
+      secEl.classList.add('pulse');
+      setTimeout(() => secEl.classList.remove('pulse'), 300);
+    }
+
+    tick();
+    setInterval(tick, 1000);
+  </script>
+</body>
+</html>
