@@ -152,6 +152,38 @@
       50%       { opacity: 0.15; }
     }
 
+    /* ── TBD state ──────────────────────────────────── */
+    .tbd {
+      display: none;
+      margin: 1.2rem 0 2.2rem;
+    }
+
+    .tbd.active { display: block; }
+
+    .tbd-text {
+      font-size: clamp(1.8rem, 6vw, 5rem);
+      font-weight: 900;
+      letter-spacing: 0.28em;
+      color: #fff;
+      text-shadow:
+        0 0 15px rgba(255,255,255,0.4),
+        0 0 40px rgba(201,168,76,0.25);
+      animation: tbdPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes tbdPulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.55; }
+    }
+
+    .tbd-label {
+      font-size: clamp(0.5rem, 1.2vw, 0.72rem);
+      letter-spacing: 0.35em;
+      color: #c9a84c;
+      margin-top: 1rem;
+      opacity: 0.85;
+    }
+
     /* ── Status / info row ──────────────────────────── */
     .info-row {
       display: flex;
@@ -295,7 +327,12 @@
     <div class="title">The Hunt for the Krayt Dragon</div>
     <div class="divider"></div>
 
-    <div class="countdown">
+    <div class="tbd" id="tbdBlock">
+      <div class="tbd-text">DATE PENDING</div>
+      <div class="tbd-label">The hunt will be called</div>
+    </div>
+
+    <div class="countdown" id="countdownBlock">
       <div class="unit">
         <div class="number" id="months">00</div>
         <div class="unit-label">Months</div>
@@ -340,11 +377,17 @@
     <div class="zero-sub">Move out, hunters. The Krayt Dragon awaits.</div>
   </div>
 
-  <div class="footer">June 5th, 2026 &nbsp;·&nbsp; 5:00 PM CT</div>
+  <div class="footer" id="footerText">Date to be determined</div>
 
   <script>
     // ── Config ───────────────────────────────────────────
-    const EVENT_DATE = new Date('2026-06-05T22:00:00Z'); // 5:00 PM CT (UTC-5 in June)
+    // Set EVENT_DATE to null while the date is undecided — the page will show
+    // a "DATE PENDING" state instead of a countdown.
+    // To go live again, set both values below:
+    //   const EVENT_DATE = new Date('2026-10-15T22:00:00Z');
+    //   const EVENT_DISPLAY = 'October 15th, 2026 · 5:00 PM CT';
+    const EVENT_DATE    = null;
+    const EVENT_DISPLAY = 'Date to be determined';
 
     const QUOTES = [
       ["Bounty hunting is a complicated profession.", "Boba Fett"],
@@ -411,6 +454,17 @@
     function pad(n) { return String(n).padStart(2, '0'); }
 
     function tick() {
+      // No date set yet — show the pending state and stop.
+      if (!EVENT_DATE) {
+        document.getElementById('countdownBlock').style.display = 'none';
+        document.getElementById('tbdBlock').classList.add('active');
+        document.getElementById('statusText').textContent = 'Standing By';
+        document.getElementById('footerText').textContent = EVENT_DISPLAY;
+        return;
+      }
+
+      document.getElementById('footerText').textContent = EVENT_DISPLAY;
+
       const now   = new Date();
       const diff  = EVENT_DATE - now;
 
